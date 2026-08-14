@@ -1,0 +1,138 @@
+:root {
+  color: #102a43;
+  background: #f5f7fb;
+  font-family: Inter, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+  line-height: 1.5;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+}
+
+.app-shell {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem 1.5rem 3rem;
+}
+
+.search-panel,
+.routes-panel,
+.carriers-panel {
+  background: #ffffff;
+  border: 1px solid #d9e2ec;
+  border-radius: 12px;
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+  box-shadow: 0 8px 24px rgba(16, 42, 67, 0.06);
+}
+
+.subtitle {
+  margin-top: 0;
+  color: #486581;
+}
+
+.search-form {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 1rem;
+  align-items: end;
+}
+
+label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  font-weight: 600;
+}
+
+input {
+  padding: 0.75rem 0.9rem;
+  border: 1px solid #bcccdc;
+  border-radius: 8px;
+  font-size: 1rem;
+}
+
+button {
+  padding: 0.85rem 1.2rem;
+  border: none;
+  border-radius: 8px;
+  background: #127fbf;
+  color: #ffffff;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+button:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.routes-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1rem;
+}
+
+.route-card {
+  border: 1px solid #d9e2ec;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.route-meta {
+  padding: 0.9rem 1rem;
+  background: #f0f4f8;
+}
+
+.route-meta h3,
+.route-meta p {
+  margin: 0;
+}
+
+iframe {
+  width: 100%;
+  height: 280px;
+  border: 0;
+}
+
+.carrier-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.carrier-list li {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.85rem 0;
+  border-bottom: 1px solid #e4e7eb;
+}
+
+.carrier-list li:last-child {
+  border-bottom: none;
+}
+
+.empty-state,
+.error-banner {
+  color: #486581;
+}
+
+.error-banner {
+  color: #9b1c1c;
+  background: #fde8e8;
+  border: 1px solid #f8b4b4;
+  border-radius: 8px;
+  padding: 0.85rem 1rem;
+}
+
+@media (max-width: 640px) {
+  .app-shell {
+    padding: 1rem;
+  }
+}

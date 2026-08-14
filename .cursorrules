@@ -1,0 +1,61 @@
+# GenLogs Technical Assessment - Project Guidelines
+
+## Project Context and Core Philosophy
+* **Objective:** Build a prototype web portal simulating the GenLogs platform tracking commercial trucks across US highways.
+* **Architecture Flow:** The system simulates data ingested from Trident sensors/cameras, processed by Vision AI for USDOT extraction, enriched by the SAFER FMCSA API, and surfaced to users via a React/FastAPI stack.
+* **Development Methodology:** Follow the Open Spec framework for Spec-Driven Development (SDD).
+* **Core Culture:** Prioritize "Speed and Progress Over Perfection". Keep modularity in mind.
+
+---
+
+## Technology Stack
+* **Frontend:** ReactJs (Focused on UI and rapid prototyping).
+* **Backend API:** Python with FastAPI (Chosen for readability, fast API development, and automatic documentation).
+* **Database Target:** PostgreSQL (Simulated for this prototype via mock endpoints).
+* **Deployment target:** Heroku, utilizing Node.js and Python buildpacks with a Procfile. FastAPI must serve the compiled React frontend as static files to utilize a single dyno.
+
+---
+
+## Coding Standards & Naming Conventions
+Follow PEP 8 standards strictly to ensure the codebase remains accessible and adaptable.
+
+| Concept / Data Type | Python Standard | Database Standard | Examples |
+| :--- | :--- | :--- | :--- |
+| **Standard Variables** | snake_case | snake_case (Singular) | dot_number, carrier_score |
+| **Models / Tables** | PascalCase | snake_case (Plural) | CarrierProfile, carrier_profiles |
+| **Primary Keys** | Usually `id` | `id` | id |
+| **Foreign Keys** | `[table]_id` | `[table]_id` | carrier_id, lane_id |
+| **Booleans** | `is_`, `has_`, `can_` | `is_`, `has_`, `can_` | is_inbound, has_hazmat |
+| **Timestamps** | `_at`, `_date` | `_at`, `_date` | detected_at, authorized_date |
+| **Counts / Totals** | `_count`, `_total` | `_count`, `_total` | fleet_size_min, observation_count |
+| **Raw JSON** | `_data`, `_payload` | `_data`, `_payload`| real_time_locs, fmcsa_data |
+| **Functions** | snake_case | N/A | fetch_carrier_recommendations() |
+| **Constants** | UPPER_SNAKE_CASE | N/A | MAX_SEARCH_RADIUS |
+| **Internal Vars** | `_snake_case` | N/A | _api_token |
+| **Indexes** | N/A | `[table]_[col]_idx` | carriers_dot_number_idx |
+| **Constraints** | N/A | `[table]_[col]_[type]` | carriers_dot_number_unq |
+
+---
+
+## Application Specifications & Mock Data Rules
+
+### 1. Frontend Requirements (ReactJs)
+* Render a single-page application containing input fields for "From (city)" and "To (city)".
+* Include a "Search" button to trigger the backend request.
+* Embed a Google Maps iframe/component displaying the top 3 fastest routes between the requested cities upon searching.
+* Render a list of carriers returned by the FastAPI backend.
+
+### 2. Backend Requirements (FastAPI)
+* Do not connect a live database; simulate the data based on the exact requirements below.
+* Create endpoints to accept the "From" and "To" city payloads from the frontend.
+* **Strict Mock Data Routing Rules:**
+    * **Route A:** If From = "New York City" AND To = "Washington DC" -> Return: Knight-Swift Transport Services (10 Trucks/Day), J.B. Hunt Transport Services Inc (7 Trucks/Day), YRC Worldwide (5 Trucks A day).
+    * **Route B:** If From = "San Francisco" AND To = "Los Angeles" -> Return: XPO Logistics (9 Trucks/Day), Schneider (6 Trucks/Day), Landstar Systems (2 Trucks A day).
+    * **Route C (Default):** If any other city combination is requested -> Return: UPS Inc. (11 trucks Day), FedEx Corp (9 trucks a day).
+
+---
+
+## Deployment & Pipeline Execution
+* Scaffold the repository with deployment in mind.
+* Include a root `Procfile` configured for Heroku.
+* Configure FastAPI to build and serve the React application statically.
