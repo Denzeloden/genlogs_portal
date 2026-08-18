@@ -1,5 +1,16 @@
-export default function CarrierList({ carriers }) {
-  if (!carriers.length) {
+export default function CarrierList({ carriers, status }) {
+  if (status === "empty") {
+    return (
+      <section className="carriers-panel">
+        <h2>Carriers</h2>
+        <p className="empty-state">
+          No carriers could be found for the requested route. Please try again later.
+        </p>
+      </section>
+    );
+  }
+
+  if (status !== "results" || !carriers.length) {
     return (
       <section className="carriers-panel">
         <h2>Carriers</h2>

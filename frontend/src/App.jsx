@@ -21,6 +21,7 @@ export default function App() {
   const [toCity, setToCity] = useState("Washington DC");
   const [carriers, setCarriers] = useState([]);
   const [routes, setRoutes] = useState([]);
+  const [carrierStatus, setCarrierStatus] = useState("idle");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
@@ -44,9 +45,11 @@ export default function App() {
       const result = await searchRoutes(fromCity, toCity);
       setCarriers(result.carriers);
       setRoutes(result.routes);
+      setCarrierStatus(result.carriers.length ? "results" : "empty");
     } catch (searchError) {
       setCarriers([]);
       setRoutes([]);
+      setCarrierStatus("idle");
       setError("Unable to complete the search. Check that the backend is running.");
       console.error(searchError);
     } finally {
@@ -69,7 +72,7 @@ export default function App() {
       />
       {error ? <p className="error-banner">{error}</p> : null}
       <RouteMaps routes={routes} />
-      <CarrierList carriers={carriers} />
+      <CarrierList carriers={carriers} status={carrierStatus} />
     </main>
   );
 }
