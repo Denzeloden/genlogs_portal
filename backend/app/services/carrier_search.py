@@ -2,24 +2,7 @@ from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
 from app.models import CarrierProfile, SightingRecord, VehicleProfile
-from app.services.route_embed import (
-    ROUTE_A_FROM,
-    ROUTE_A_TO,
-    ROUTE_B_FROM,
-    ROUTE_B_TO,
-    WILDCARD_DEST,
-    WILDCARD_ORIGIN,
-    normalize_city,
-    normalize_city_key,
-)
-
-
-def _is_route_a(from_key: str, to_key: str) -> bool:
-    return from_key == ROUTE_A_FROM and to_key == ROUTE_A_TO
-
-
-def _is_route_b(from_key: str, to_key: str) -> bool:
-    return from_key == ROUTE_B_FROM and to_key == ROUTE_B_TO
+from app.services.route_embed import normalize_city
 
 
 def _query_carriers(
@@ -42,15 +25,7 @@ def _query_carriers(
 def search_carriers(db: Session, from_city: str, to_city: str) -> list[dict]:
     normalized_from = normalize_city(from_city)
     normalized_to = normalize_city(to_city)
-    from_key = normalize_city_key(normalized_from)
-    to_key = normalize_city_key(normalized_to)
-
     results = _query_carriers(db, normalized_from, normalized_to)
-
-    if not results and not _is_route_a(from_key, to_key) and not _is_route_b(
-        from_key, to_key
-    ):
-        results = _query_carriers(db, WILDCARD_ORIGIN, WILDCARD_DEST)
 
     return [
         {"name": name, "trucks_per_day": count}

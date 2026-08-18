@@ -82,16 +82,14 @@ def test_route_b_carriers(client):
     assert carriers[2] == {"name": "Landstar Systems", "trucks_per_day": 2}
 
 
-def test_route_c_default_carriers(client):
+def test_unknown_route_returns_no_carriers(client):
     response = client.post(
         "/api/search",
-        json={"from_city": "Chicago", "to_city": "Dallas"},
+        json={"from_city": "Seattle WA", "to_city": "Detroit MI"},
     )
     assert response.status_code == 200
     carriers = response.json()["carriers"]
-    assert len(carriers) == 2
-    assert carriers[0] == {"name": "UPS Inc.", "trucks_per_day": 11}
-    assert carriers[1] == {"name": "FedEx Corp", "trucks_per_day": 9}
+    assert carriers == []
 
 
 def test_search_returns_three_routes(client):

@@ -64,7 +64,7 @@ Visit `http://localhost:8000` — FastAPI serves the compiled React app.
 |------|----|-------------------|
 | New York City | Washington DC | Knight-Swift (10), J.B. Hunt (7), YRC (5) |
 | San Francisco | Los Angeles | XPO (9), Schneider (6), Landstar (2) |
-| Chicago | Dallas | UPS (11), FedEx (9) |
+| Any other pair (e.g. Seattle WA → Detroit MI) | | No carriers (empty state message in UI) |
 
 ## Environment Variables
 
