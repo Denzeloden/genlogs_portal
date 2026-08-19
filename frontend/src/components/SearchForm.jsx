@@ -49,6 +49,10 @@ export default function SearchForm({
     setToPlaceId(null);
   }
 
+  const canSearch = hasPlacesAutocomplete
+    ? Boolean(fromPlaceId && toPlaceId)
+    : Boolean(fromCity.trim() && toCity.trim());
+
   async function handleSubmit() {
     try {
       if (hasPlacesAutocomplete) {
@@ -116,7 +120,7 @@ export default function SearchForm({
             onChange={(event) => handleToInputChange(event.target.value)}
           />
         </label>
-        <button type="button" onClick={handleSubmit} disabled={loading}>
+        <button type="button" onClick={handleSubmit} disabled={loading || !canSearch}>
           {loading ? "Searching..." : "Search"}
         </button>
       </div>
