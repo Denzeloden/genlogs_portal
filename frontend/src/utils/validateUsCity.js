@@ -3,6 +3,9 @@ import { loadGoogleMapsPlaces } from "../hooks/usePlacesAutocomplete";
 export const US_ONLY_ERROR_MESSAGE =
   "Unable to complete the search. Please choose a location within the US";
 
+export const DROPDOWN_REQUIRED_MESSAGE =
+  "Please select a location from the dropdown";
+
 const US_GEOCODE_OPTIONS = {
   componentRestrictions: { country: "us" },
 };

@@ -1,6 +1,7 @@
 import { useRef, useState } from "react";
 import { usePlacesAutocomplete } from "../hooks/usePlacesAutocomplete";
 import {
+  DROPDOWN_REQUIRED_MESSAGE,
   resolveUsCity,
   US_ONLY_ERROR_MESSAGE,
 } from "../utils/validateUsCity";
@@ -57,7 +58,7 @@ export default function SearchForm({
     try {
       if (hasPlacesAutocomplete) {
         if (!fromPlaceId || !toPlaceId) {
-          onValidationError(US_ONLY_ERROR_MESSAGE);
+          onValidationError(DROPDOWN_REQUIRED_MESSAGE);
           return;
         }
 
@@ -120,7 +121,12 @@ export default function SearchForm({
             onChange={(event) => handleToInputChange(event.target.value)}
           />
         </label>
-        <button type="button" onClick={handleSubmit} disabled={loading || !canSearch}>
+        <button
+          type="button"
+          className={!canSearch && !loading ? "search-button-awaiting" : undefined}
+          onClick={handleSubmit}
+          disabled={loading}
+        >
           {loading ? "Searching..." : "Search"}
         </button>
       </div>

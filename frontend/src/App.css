@@ -169,6 +169,10 @@ button:disabled {
   cursor: not-allowed;
 }
 
+.search-button-awaiting {
+  opacity: 0.75;
+}
+
 .routes-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
