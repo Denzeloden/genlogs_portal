@@ -20,18 +20,22 @@ export default function SearchForm({
   usePlacesAutocomplete(toInputRef, onToChange, hasPlacesAutocomplete);
 
   async function handleSubmit() {
-    const [fromValid, toValid] = await Promise.all([
-      validateUsCity(fromCity),
-      validateUsCity(toCity),
-    ]);
+    try {
+      const [fromValid, toValid] = await Promise.all([
+        validateUsCity(fromCity),
+        validateUsCity(toCity),
+      ]);
 
-    if (!fromValid || !toValid) {
+      if (!fromValid || !toValid) {
+        onValidationError(US_ONLY_ERROR_MESSAGE);
+        return;
+      }
+
+      onValidationError("");
+      await onSearch();
+    } catch {
       onValidationError(US_ONLY_ERROR_MESSAGE);
-      return;
     }
-
-    onValidationError("");
-    onSearch();
   }
 
   return (

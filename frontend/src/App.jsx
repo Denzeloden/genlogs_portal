@@ -1,9 +1,10 @@
 import { useEffect, useState } from "react";
-import { searchRoutes } from "./api/client";
+import { searchRoutes, SearchRequestError } from "./api/client";
 import CarrierList from "./components/CarrierList";
 import RouteMaps from "./components/RouteMaps";
 import SearchForm from "./components/SearchForm";
 import ThemeToggle from "./components/ThemeToggle";
+import { US_ONLY_ERROR_MESSAGE } from "./utils/validateUsCity";
 
 const THEME_STORAGE_KEY = "genlogs-theme";
 
@@ -55,7 +56,17 @@ export default function App() {
       setCarrierStatus(result.carriers.length ? "results" : "empty");
     } catch (searchError) {
       clearSearchResults();
-      setError(searchError.message || "Unable to complete the search. Check that the backend is running.");
+      if (
+        searchError instanceof SearchRequestError &&
+        searchError.status === 422
+      ) {
+        setError(US_ONLY_ERROR_MESSAGE);
+      } else {
+        setError(
+          searchError.message ||
+            "Unable to complete the search. Check that the backend is running."
+        );
+      }
       console.error(searchError);
     } finally {
       setLoading(false);

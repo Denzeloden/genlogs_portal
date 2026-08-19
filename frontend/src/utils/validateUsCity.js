@@ -72,15 +72,19 @@ export async function validateUsCity(city) {
     return false;
   }
 
-  const apiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
-  if (apiKey) {
-    try {
-      await loadGoogleMapsPlaces(apiKey);
-      return geocodeUsCity(cleaned);
-    } catch {
-      return isUsCityHeuristic(cleaned);
-    }
+  if (!isUsCityHeuristic(cleaned)) {
+    return false;
   }
 
-  return isUsCityHeuristic(cleaned);
+  const apiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
+  if (!apiKey) {
+    return true;
+  }
+
+  try {
+    await loadGoogleMapsPlaces(apiKey);
+    return geocodeUsCity(cleaned);
+  } catch {
+    return isUsCityHeuristic(cleaned);
+  }
 }
