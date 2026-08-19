@@ -18,8 +18,8 @@ function getInitialTheme() {
 
 export default function App() {
   const [theme, setTheme] = useState(getInitialTheme);
-  const [fromCity, setFromCity] = useState("New York City");
-  const [toCity, setToCity] = useState("Washington DC");
+  const [fromCity, setFromCity] = useState("");
+  const [toCity, setToCity] = useState("");
   const [carriers, setCarriers] = useState([]);
   const [routes, setRoutes] = useState([]);
   const [carrierStatus, setCarrierStatus] = useState("idle");

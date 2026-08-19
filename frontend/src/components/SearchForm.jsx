@@ -1,4 +1,4 @@
-import { useRef } from "react";
+import { useRef, useState } from "react";
 import { usePlacesAutocomplete } from "../hooks/usePlacesAutocomplete";
 import {
   resolveUsCity,
@@ -18,12 +18,50 @@ export default function SearchForm({
 }) {
   const fromInputRef = useRef(null);
   const toInputRef = useRef(null);
+  const [fromPlaceId, setFromPlaceId] = useState(null);
+  const [toPlaceId, setToPlaceId] = useState(null);
 
-  usePlacesAutocomplete(fromInputRef, onFromChange, hasPlacesAutocomplete);
-  usePlacesAutocomplete(toInputRef, onToChange, hasPlacesAutocomplete);
+  usePlacesAutocomplete(
+    fromInputRef,
+    ({ label, placeId }) => {
+      onFromChange(label);
+      setFromPlaceId(placeId);
+    },
+    hasPlacesAutocomplete
+  );
+
+  usePlacesAutocomplete(
+    toInputRef,
+    ({ label, placeId }) => {
+      onToChange(label);
+      setToPlaceId(placeId);
+    },
+    hasPlacesAutocomplete
+  );
+
+  function handleFromInputChange(value) {
+    onFromChange(value);
+    setFromPlaceId(null);
+  }
+
+  function handleToInputChange(value) {
+    onToChange(value);
+    setToPlaceId(null);
+  }
 
   async function handleSubmit() {
     try {
+      if (hasPlacesAutocomplete) {
+        if (!fromPlaceId || !toPlaceId) {
+          onValidationError(US_ONLY_ERROR_MESSAGE);
+          return;
+        }
+
+        onValidationError("");
+        await onSearch({ fromCity, toCity });
+        return;
+      }
+
       const [fromResult, toResult] = await Promise.all([
         resolveUsCity(fromCity),
         resolveUsCity(toCity),
@@ -51,7 +89,9 @@ export default function SearchForm({
       <h1>GenLogs Carrier Route Search</h1>
       <p className="subtitle">
         Find top carriers moving between two US cities using simulated Trident sightings.
-        {hasPlacesAutocomplete ? " City search is limited to the United States." : null}
+        {hasPlacesAutocomplete
+          ? " Select both cities from the dropdown suggestions."
+          : " City search is limited to the United States."}
       </p>
       <div className="search-form">
         <label>
@@ -62,7 +102,7 @@ export default function SearchForm({
             value={fromCity}
             placeholder="New York City"
             autoComplete="off"
-            onChange={(event) => onFromChange(event.target.value)}
+            onChange={(event) => handleFromInputChange(event.target.value)}
           />
         </label>
         <label>
@@ -73,7 +113,7 @@ export default function SearchForm({
             value={toCity}
             placeholder="Washington DC"
             autoComplete="off"
-            onChange={(event) => onToChange(event.target.value)}
+            onChange={(event) => handleToInputChange(event.target.value)}
           />
         </label>
         <button type="button" onClick={handleSubmit} disabled={loading}>

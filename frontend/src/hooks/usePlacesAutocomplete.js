@@ -82,11 +82,19 @@ export function usePlacesAutocomplete(inputRef, onPlaceSelected, enabled = true)
 
         autocompleteRef.current.addListener("place_changed", () => {
           const place = autocompleteRef.current.getPlace();
-          if (!isUnitedStatesPlace(place)) {
+          if (!place?.place_id || !isUnitedStatesPlace(place)) {
             return;
           }
 
-          onPlaceSelectedRef.current(formatPlaceCity(place));
+          const label = formatPlaceCity(place);
+          if (!label) {
+            return;
+          }
+
+          onPlaceSelectedRef.current({
+            label,
+            placeId: place.place_id,
+          });
         });
       })
       .catch((error) => {
