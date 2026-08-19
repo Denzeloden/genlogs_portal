@@ -69,6 +69,30 @@ def test_route_a_carriers(client):
     assert carriers[2] == {"name": "YRC Worldwide", "trucks_per_day": 5}
 
 
+def test_route_b_carriers_with_state_suffixes(client):
+    response = client.post(
+        "/api/search",
+        json={"from_city": "San Francisco, CA", "to_city": "Los Angeles, CA"},
+    )
+    assert response.status_code == 200
+    carriers = response.json()["carriers"]
+    assert len(carriers) == 3
+    assert carriers[0] == {"name": "XPO Logistics", "trucks_per_day": 9}
+    assert carriers[1] == {"name": "Schneider", "trucks_per_day": 6}
+    assert carriers[2] == {"name": "Landstar Systems", "trucks_per_day": 2}
+
+
+def test_route_a_carriers_with_state_suffixes(client):
+    response = client.post(
+        "/api/search",
+        json={"from_city": "New York, NY", "to_city": "Washington, DC"},
+    )
+    assert response.status_code == 200
+    carriers = response.json()["carriers"]
+    assert len(carriers) == 3
+    assert carriers[0]["name"] == "Knight-Swift Transport Services"
+
+
 def test_route_b_carriers(client):
     response = client.post(
         "/api/search",

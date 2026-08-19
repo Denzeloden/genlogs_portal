@@ -1,4 +1,5 @@
 import os
+import re
 from urllib.parse import quote_plus
 
 ROUTE_A_FROM = "new york city"
@@ -7,6 +8,17 @@ ROUTE_B_FROM = "san francisco"
 ROUTE_B_TO = "los angeles"
 WILDCARD_ORIGIN = "*"
 WILDCARD_DEST = "*"
+
+STATE_SUFFIX = re.compile(r",\s*[A-Z]{2}$", re.IGNORECASE)
+
+LANE_CITY_ALIASES = {
+    "new york": "New York City",
+    "new york city": "New York City",
+    "washington": "Washington DC",
+    "washington dc": "Washington DC",
+    "san francisco": "San Francisco",
+    "los angeles": "Los Angeles",
+}
 
 ROUTE_LABELS = ("Fastest", "Avoid Tolls", "Avoid Highways")
 
@@ -43,7 +55,8 @@ FALLBACK_DIRFLG = {
 
 
 def normalize_city(city: str) -> str:
-    return city.strip()
+    cleaned = STATE_SUFFIX.sub("", city.strip()).strip()
+    return LANE_CITY_ALIASES.get(cleaned.lower(), cleaned)
 
 
 def normalize_city_key(city: str) -> str:
