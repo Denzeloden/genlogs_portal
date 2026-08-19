@@ -64,7 +64,8 @@ Visit `http://localhost:8000` — FastAPI serves the compiled React app.
 |------|----|-------------------|
 | New York City | Washington DC | Knight-Swift (10), J.B. Hunt (7), YRC (5) |
 | San Francisco | Los Angeles | XPO (9), Schneider (6), Landstar (2) |
-| Any other pair (e.g. Seattle WA → Detroit MI) | | No carriers (empty state message in UI) |
+| Chicago | Dallas | UPS (11), FedEx (9) |
+| Seattle | Boston | UPS (11), FedEx (9) — Route C default |
 
 ## Environment Variables
 
@@ -72,6 +73,7 @@ Visit `http://localhost:8000` — FastAPI serves the compiled React app.
 |----------|----------|-------------|
 | `DATABASE_URL` | Yes (prod) | PostgreSQL connection string |
 | `GOOGLE_MAPS_EMBED_KEY` | No | Google Maps Embed API key for route iframes |
+| `VITE_GOOGLE_MAPS_API_KEY` | No | Google Maps JavaScript API key for US city autocomplete |
 
 Local default: `postgresql://genlogs:genlogs@localhost:5432/genlogs`
 

@@ -8,7 +8,7 @@ ROUTE_B_TO = "los angeles"
 WILDCARD_ORIGIN = "*"
 WILDCARD_DEST = "*"
 
-ROUTE_LABELS = ("Fastest", "Route 2", "Route 3")
+ROUTE_LABELS = ("Fastest", "Avoid Tolls", "Avoid Highways")
 
 ROUTE_METADATA = {
     (ROUTE_A_FROM, ROUTE_A_TO): [
@@ -29,10 +29,16 @@ DEFAULT_ROUTE_METADATA = [
     ("9h 00m", "540 mi"),
 ]
 
-WAYPOINTS = {
+ROUTE_AVOID = {
     0: None,
-    1: "Philadelphia,PA",
-    2: "Baltimore,MD",
+    1: "tolls",
+    2: "highways",
+}
+
+FALLBACK_DIRFLG = {
+    0: "",
+    1: "t",
+    2: "h",
 }
 
 
@@ -48,18 +54,25 @@ def build_embed_url(from_city: str, to_city: str, route_index: int) -> str:
     api_key = os.getenv("GOOGLE_MAPS_EMBED_KEY")
     origin = quote_plus(from_city)
     destination = quote_plus(to_city)
+    avoid = ROUTE_AVOID.get(route_index)
 
     if api_key:
-        waypoint = WAYPOINTS.get(route_index)
         url = (
             f"https://www.google.com/maps/embed/v1/directions"
-            f"?key={api_key}&origin={origin}&destination={destination}"
+            f"?key={api_key}&origin={origin}&destination={destination}&mode=driving"
         )
-        if waypoint:
-            url += f"&waypoints={quote_plus(waypoint)}"
+        if avoid:
+            url += f"&avoid={avoid}"
         return url
 
-    return f"https://www.google.com/maps?q={origin}+to+{destination}&output=embed"
+    dirflg = FALLBACK_DIRFLG.get(route_index, "")
+    url = (
+        f"https://maps.google.com/maps?saddr={origin}&daddr={destination}"
+        f"&output=embed&hl=en"
+    )
+    if dirflg:
+        url += f"&dirflg={dirflg}"
+    return url
 
 
 def get_route_options(from_city: str, to_city: str) -> list[dict]:
