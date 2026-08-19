@@ -3,6 +3,10 @@ import { loadGoogleMapsPlaces } from "../hooks/usePlacesAutocomplete";
 export const US_ONLY_ERROR_MESSAGE =
   "Unable to complete the search. Please choose a location within the US";
 
+const US_GEOCODE_OPTIONS = {
+  componentRestrictions: { country: "us" },
+};
+
 const US_STATE_CODES = new Set([
   "AL", "AK", "AZ", "AR", "CA", "CO", "CT", "DE", "DC", "FL", "GA", "HI", "ID",
   "IL", "IN", "IA", "KS", "KY", "LA", "ME", "MD", "MA", "MI", "MN", "MS", "MO",
@@ -22,7 +26,45 @@ const FOREIGN_CITY_NAMES = new Set([
   "helsinki", "warsaw", "athens", "istanbul", "moscow", "seoul", "singapore",
   "hong kong", "auckland", "mexico city", "buenos aires", "sao paulo",
   "rio de janeiro", "cairo", "lagos", "nairobi", "tel aviv", "jerusalem",
+  "medellin", "medellín", "lima", "caracas", "havana", "dublin", "munich",
+  "frankfurt", "prague", "budapest", "lisbon", "casablanca", "bangkok", "manila",
+  "jakarta", "taipei", "osaka", "kyoto", "kuala lumpur", "ho chi minh city", "hanoi",
+  "bengaluru", "bangalore", "kolkata", "chennai", "karachi", "islamabad", "riyadh",
+  "doha", "accra", "addis ababa", "cape town", "johannesburg",
 ]);
+
+export function formatPlaceCity(place) {
+  if (!place?.address_components?.length) {
+    return place?.name || place?.formatted_address || "";
+  }
+
+  const city = place.address_components.find((component) =>
+    component.types.includes("locality")
+  );
+  const state = place.address_components.find((component) =>
+    component.types.includes("administrative_area_level_1")
+  );
+
+  if (city && state) {
+    return `${city.long_name}, ${state.short_name}`;
+  }
+
+  return place.name || place.formatted_address || "";
+}
+
+function formatGeocodeCity(result) {
+  const components = result.address_components || [];
+  const city = components.find((component) => component.types.includes("locality"));
+  const state = components.find((component) =>
+    component.types.includes("administrative_area_level_1")
+  );
+
+  if (city && state) {
+    return `${city.long_name}, ${state.short_name}`;
+  }
+
+  return result.formatted_address || "";
+}
 
 export function isUsCityHeuristic(city) {
   const cleaned = city.trim();
@@ -50,41 +92,55 @@ function geocodeUsCity(city) {
   return new Promise((resolve) => {
     const geocoder = new window.google.maps.Geocoder();
     geocoder.geocode(
-      { address: city, componentRestrictions: { country: "us" } },
+      { address: city, ...US_GEOCODE_OPTIONS },
       (results, status) => {
         if (status !== "OK" || !results?.length) {
-          resolve(false);
+          resolve({ valid: false, normalizedCity: null });
           return;
         }
 
-        const country = results[0].address_components?.find((component) =>
+        const result = results[0];
+        const country = result.address_components?.find((component) =>
           component.types.includes("country")
         );
-        resolve(country?.short_name === "US");
+
+        if (country?.short_name !== "US") {
+          resolve({ valid: false, normalizedCity: null });
+          return;
+        }
+
+        resolve({
+          valid: true,
+          normalizedCity: formatGeocodeCity(result) || city.trim(),
+        });
       }
     );
   });
 }
 
-export async function validateUsCity(city) {
+export async function resolveUsCity(city) {
   const cleaned = city.trim();
-  if (!cleaned) {
-    return false;
-  }
-
-  if (!isUsCityHeuristic(cleaned)) {
-    return false;
+  if (!cleaned || !isUsCityHeuristic(cleaned)) {
+    return { valid: false, normalizedCity: null };
   }
 
   const apiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
   if (!apiKey) {
-    return true;
+    return { valid: true, normalizedCity: cleaned };
   }
 
   try {
     await loadGoogleMapsPlaces(apiKey);
     return geocodeUsCity(cleaned);
   } catch {
-    return isUsCityHeuristic(cleaned);
+    return {
+      valid: isUsCityHeuristic(cleaned),
+      normalizedCity: cleaned,
+    };
   }
+}
+
+export async function validateUsCity(city) {
+  const result = await resolveUsCity(city);
+  return result.valid;
 }

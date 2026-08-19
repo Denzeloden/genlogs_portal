@@ -9,7 +9,11 @@ from app.schemas.search import (
     SearchResponse,
 )
 from app.services.carrier_search import search_carriers
-from app.services.city_validation import US_ONLY_ERROR_MESSAGE, is_us_city
+from app.services.city_validation import (
+    US_ONLY_ERROR_MESSAGE,
+    is_us_city,
+    normalize_us_city,
+)
 from app.services.route_embed import get_route_options, normalize_city
 
 router = APIRouter(prefix="/api", tags=["search"])
@@ -22,8 +26,8 @@ def search_routes(
     if not is_us_city(payload.from_city) or not is_us_city(payload.to_city):
         raise HTTPException(status_code=422, detail=US_ONLY_ERROR_MESSAGE)
 
-    from_city = normalize_city(payload.from_city)
-    to_city = normalize_city(payload.to_city)
+    from_city = normalize_city(normalize_us_city(payload.from_city))
+    to_city = normalize_city(normalize_us_city(payload.to_city))
 
     carriers = [
         CarrierResult(**carrier)

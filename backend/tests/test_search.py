@@ -7,6 +7,7 @@ from sqlalchemy.pool import StaticPool
 from app.db.base import Base
 from app.db.session import get_db
 from app.main import app
+from app.services.city_validation import US_ONLY_ERROR_MESSAGE
 from scripts.seed_mock_data import seed_mock_data
 
 
@@ -118,15 +119,22 @@ def test_route_c_default_carriers(client):
     assert carriers[1] == {"name": "FedEx Corp", "trucks_per_day": 9}
 
 
+def test_rejects_bogota_colombia(client):
+    response = client.post(
+        "/api/search",
+        json={"from_city": "Seattle, WA", "to_city": "Bogota, Colombia"},
+    )
+    assert response.status_code == 422
+    assert response.json()["detail"] == US_ONLY_ERROR_MESSAGE
+
+
 def test_rejects_non_us_cities(client):
     response = client.post(
         "/api/search",
         json={"from_city": "London", "to_city": "Paris, France"},
     )
     assert response.status_code == 422
-    assert response.json()["detail"] == (
-        "Unable to complete the search. Please choose a location within the US"
-    )
+    assert response.json()["detail"] == US_ONLY_ERROR_MESSAGE
 
 
 def test_rejects_invalid_state_suffix(client):

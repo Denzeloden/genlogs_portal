@@ -44,13 +44,16 @@ export default function App() {
     setCarrierStatus("idle");
   }
 
-  async function handleSearch() {
+  async function handleSearch(searchPayload = {}) {
+    const resolvedFrom = searchPayload.fromCity ?? fromCity;
+    const resolvedTo = searchPayload.toCity ?? toCity;
+
     setLoading(true);
     setError("");
     clearSearchResults();
 
     try {
-      const result = await searchRoutes(fromCity, toCity);
+      const result = await searchRoutes(resolvedFrom, resolvedTo);
       setCarriers(result.carriers);
       setRoutes(result.routes);
       setCarrierStatus(result.carriers.length ? "results" : "empty");

@@ -1,6 +1,9 @@
 import { useRef } from "react";
 import { usePlacesAutocomplete } from "../hooks/usePlacesAutocomplete";
-import { US_ONLY_ERROR_MESSAGE, validateUsCity } from "../utils/validateUsCity";
+import {
+  resolveUsCity,
+  US_ONLY_ERROR_MESSAGE,
+} from "../utils/validateUsCity";
 
 const hasPlacesAutocomplete = Boolean(import.meta.env.VITE_GOOGLE_MAPS_API_KEY);
 
@@ -21,18 +24,23 @@ export default function SearchForm({
 
   async function handleSubmit() {
     try {
-      const [fromValid, toValid] = await Promise.all([
-        validateUsCity(fromCity),
-        validateUsCity(toCity),
+      const [fromResult, toResult] = await Promise.all([
+        resolveUsCity(fromCity),
+        resolveUsCity(toCity),
       ]);
 
-      if (!fromValid || !toValid) {
+      if (!fromResult.valid || !toResult.valid) {
         onValidationError(US_ONLY_ERROR_MESSAGE);
         return;
       }
 
       onValidationError("");
-      await onSearch();
+      onFromChange(fromResult.normalizedCity);
+      onToChange(toResult.normalizedCity);
+      await onSearch({
+        fromCity: fromResult.normalizedCity,
+        toCity: toResult.normalizedCity,
+      });
     } catch {
       onValidationError(US_ONLY_ERROR_MESSAGE);
     }

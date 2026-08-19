@@ -1,4 +1,7 @@
+import os
 import re
+
+import httpx
 
 US_ONLY_ERROR_MESSAGE = (
     "Unable to complete the search. Please choose a location within the US"
@@ -117,11 +120,45 @@ FOREIGN_CITY_NAMES = frozenset(
         "nairobi",
         "tel aviv",
         "jerusalem",
+        "medellin",
+        "medellín",
+        "lima",
+        "caracas",
+        "havana",
+        "dublin",
+        "munich",
+        "frankfurt",
+        "prague",
+        "budapest",
+        "lisbon",
+        "casablanca",
+        "bangkok",
+        "manila",
+        "jakarta",
+        "taipei",
+        "osaka",
+        "kyoto",
+        "nagoya",
+        "kuala lumpur",
+        "ho chi minh city",
+        "hanoi",
+        "bengaluru",
+        "bangalore",
+        "kolkata",
+        "chennai",
+        "karachi",
+        "islamabad",
+        "riyadh",
+        "doha",
+        "accra",
+        "addis ababa",
+        "cape town",
+        "johannesburg",
     }
 )
 
 
-def is_us_city(city: str) -> bool:
+def _passes_heuristic(city: str) -> bool:
     cleaned = city.strip()
     if not cleaned:
         return False
@@ -137,3 +174,92 @@ def is_us_city(city: str) -> bool:
         return False
 
     return cleaned.lower() not in FOREIGN_CITY_NAMES
+
+
+def _format_geocode_city(result: dict) -> str:
+    components = result.get("address_components") or []
+    city = next(
+        (
+            component["long_name"]
+            for component in components
+            if "locality" in component.get("types", [])
+        ),
+        None,
+    )
+    state = next(
+        (
+            component["short_name"]
+            for component in components
+            if "administrative_area_level_1" in component.get("types", [])
+        ),
+        None,
+    )
+
+    if city and state:
+        return f"{city}, {state}"
+
+    return result.get("formatted_address", "")
+
+
+def _geocode_us_city(city: str) -> tuple[bool | None, str | None]:
+    api_key = os.getenv("GOOGLE_MAPS_EMBED_KEY")
+    if not api_key:
+        return None, None
+
+    try:
+        response = httpx.get(
+            "https://maps.googleapis.com/maps/api/geocode/json",
+            params={
+                "address": city,
+                "components": "country:US",
+                "key": api_key,
+            },
+            timeout=10.0,
+        )
+        response.raise_for_status()
+        data = response.json()
+        status = data.get("status")
+        if status == "ZERO_RESULTS":
+            return False, None
+        if status != "OK" or not data.get("results"):
+            return None, None
+
+        result = data["results"][0]
+        for component in result.get("address_components") or []:
+            if "country" in component.get("types", []):
+                if component.get("short_name") != "US":
+                    return False, None
+                break
+        else:
+            return False, None
+
+        normalized_city = _format_geocode_city(result) or city.strip()
+        return True, normalized_city
+    except httpx.HTTPError:
+        return None, None
+
+
+def is_us_city(city: str) -> bool:
+    cleaned = city.strip()
+    if not _passes_heuristic(cleaned):
+        return False
+
+    is_us, _normalized_city = _geocode_us_city(cleaned)
+    if is_us is False:
+        return False
+    if is_us is True:
+        return True
+
+    return True
+
+
+def normalize_us_city(city: str) -> str:
+    cleaned = city.strip()
+    if not cleaned:
+        return cleaned
+
+    is_us, normalized_city = _geocode_us_city(cleaned)
+    if is_us and normalized_city:
+        return normalized_city
+
+    return cleaned

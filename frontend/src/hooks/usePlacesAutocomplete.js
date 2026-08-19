@@ -1,6 +1,7 @@
 import { useEffect, useRef } from "react";
+import { formatPlaceCity } from "../utils/validateUsCity";
 
-const US_CITY_OPTIONS = {
+export const US_CITY_AUTOCOMPLETE_OPTIONS = {
   componentRestrictions: { country: "us" },
   types: ["(cities)"],
 };
@@ -41,25 +42,11 @@ export function loadGoogleMapsPlaces(apiKey) {
   return mapsScriptPromise;
 }
 
-function getCityLabel(place) {
-  if (!place) {
-    return "";
-  }
-
-  if (place.address_components?.length) {
-    const city = place.address_components.find((component) =>
-      component.types.includes("locality")
-    );
-    const state = place.address_components.find((component) =>
-      component.types.includes("administrative_area_level_1")
-    );
-
-    if (city && state) {
-      return `${city.long_name}, ${state.short_name}`;
-    }
-  }
-
-  return place.name || place.formatted_address || "";
+function isUnitedStatesPlace(place) {
+  const country = place?.address_components?.find((component) =>
+    component.types.includes("country")
+  );
+  return country?.short_name === "US";
 }
 
 export function usePlacesAutocomplete(inputRef, onPlaceSelected, enabled = true) {
@@ -90,12 +77,16 @@ export function usePlacesAutocomplete(inputRef, onPlaceSelected, enabled = true)
 
         autocompleteRef.current = new window.google.maps.places.Autocomplete(
           inputRef.current,
-          US_CITY_OPTIONS
+          US_CITY_AUTOCOMPLETE_OPTIONS
         );
 
         autocompleteRef.current.addListener("place_changed", () => {
           const place = autocompleteRef.current.getPlace();
-          onPlaceSelectedRef.current(getCityLabel(place));
+          if (!isUnitedStatesPlace(place)) {
+            return;
+          }
+
+          onPlaceSelectedRef.current(formatPlaceCity(place));
         });
       })
       .catch((error) => {
