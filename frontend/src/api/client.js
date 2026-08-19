@@ -11,7 +11,12 @@ export async function searchRoutes(fromCity, toCity) {
   });
 
   if (!response.ok) {
-    throw new Error("Search request failed");
+    const payload = await response.json().catch(() => ({}));
+    const message =
+      typeof payload.detail === "string"
+        ? payload.detail
+        : "Search request failed";
+    throw new Error(message);
   }
 
   return response.json();

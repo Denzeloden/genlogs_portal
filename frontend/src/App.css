@@ -21,9 +21,9 @@
   --color-accent-hover: #7281a3;
   --color-accent-text: #f1f1f0;
   --color-shadow: rgba(15, 20, 46, 0.45);
-  --color-error-text: #fecaca;
-  --color-error-bg: rgba(19, 37, 76, 0.8);
-  --color-error-border: rgba(94, 108, 143, 0.6);
+  --color-error-text: #fca5a5;
+  --color-error-bg: rgba(127, 29, 29, 0.35);
+  --color-error-border: #ef4444;
   --color-toggle-bg: #0f1530;
   --color-toggle-border: rgba(94, 108, 143, 0.45);
 }

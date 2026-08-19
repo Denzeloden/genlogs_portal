@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
 from app.db.session import get_db
@@ -9,6 +9,7 @@ from app.schemas.search import (
     SearchResponse,
 )
 from app.services.carrier_search import search_carriers
+from app.services.city_validation import US_ONLY_ERROR_MESSAGE, is_us_city
 from app.services.route_embed import get_route_options, normalize_city
 
 router = APIRouter(prefix="/api", tags=["search"])
@@ -18,6 +19,9 @@ router = APIRouter(prefix="/api", tags=["search"])
 def search_routes(
     payload: SearchRequest, db: Session = Depends(get_db)
 ) -> SearchResponse:
+    if not is_us_city(payload.from_city) or not is_us_city(payload.to_city):
+        raise HTTPException(status_code=422, detail=US_ONLY_ERROR_MESSAGE)
+
     from_city = normalize_city(payload.from_city)
     to_city = normalize_city(payload.to_city)
 

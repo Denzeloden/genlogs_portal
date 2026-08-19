@@ -1,0 +1,86 @@
+import { loadGoogleMapsPlaces } from "../hooks/usePlacesAutocomplete";
+
+export const US_ONLY_ERROR_MESSAGE =
+  "Unable to complete the search. Please choose a location within the US";
+
+const US_STATE_CODES = new Set([
+  "AL", "AK", "AZ", "AR", "CA", "CO", "CT", "DE", "DC", "FL", "GA", "HI", "ID",
+  "IL", "IN", "IA", "KS", "KY", "LA", "ME", "MD", "MA", "MI", "MN", "MS", "MO",
+  "MT", "NE", "NV", "NH", "NJ", "NM", "NY", "NC", "ND", "OH", "OK", "OR", "PA",
+  "RI", "SC", "SD", "TN", "TX", "UT", "VT", "VA", "WA", "WV", "WI", "WY",
+]);
+
+const NON_US_COUNTRY_SUFFIX =
+  /,\s*(?:France|United Kingdom|UK|England|Scotland|Wales|Northern Ireland|Canada|Mexico|Germany|Italy|Spain|Japan|China|Australia|Brazil|India|Ireland|Netherlands|Belgium|Switzerland|Austria|Portugal|Sweden|Norway|Denmark|Finland|Poland|Greece|Turkey|Russia|South Korea|Argentina|Chile|Colombia|Peru|Venezuela|Egypt|South Africa|Nigeria|Kenya|Israel|United Arab Emirates|UAE|Saudi Arabia|Singapore|Hong Kong|Taiwan|New Zealand)\s*$/i;
+
+const STATE_SUFFIX_PATTERN = /(?:,\s*|\s+)([A-Z]{2})\s*$/i;
+
+const FOREIGN_CITY_NAMES = new Set([
+  "london", "paris", "toronto", "vancouver", "montreal", "berlin", "madrid", "rome",
+  "tokyo", "beijing", "shanghai", "sydney", "melbourne", "mumbai", "delhi", "dubai",
+  "amsterdam", "brussels", "zurich", "vienna", "stockholm", "oslo", "copenhagen",
+  "helsinki", "warsaw", "athens", "istanbul", "moscow", "seoul", "singapore",
+  "hong kong", "auckland", "mexico city", "buenos aires", "sao paulo",
+  "rio de janeiro", "cairo", "lagos", "nairobi", "tel aviv", "jerusalem",
+]);
+
+export function isUsCityHeuristic(city) {
+  const cleaned = city.trim();
+  if (!cleaned) {
+    return false;
+  }
+
+  if (NON_US_COUNTRY_SUFFIX.test(cleaned)) {
+    return false;
+  }
+
+  const stateMatch = cleaned.match(STATE_SUFFIX_PATTERN);
+  if (stateMatch) {
+    return US_STATE_CODES.has(stateMatch[1].toUpperCase());
+  }
+
+  if (cleaned.includes(",")) {
+    return false;
+  }
+
+  return !FOREIGN_CITY_NAMES.has(cleaned.toLowerCase());
+}
+
+function geocodeUsCity(city) {
+  return new Promise((resolve) => {
+    const geocoder = new window.google.maps.Geocoder();
+    geocoder.geocode(
+      { address: city, componentRestrictions: { country: "us" } },
+      (results, status) => {
+        if (status !== "OK" || !results?.length) {
+          resolve(false);
+          return;
+        }
+
+        const country = results[0].address_components?.find((component) =>
+          component.types.includes("country")
+        );
+        resolve(country?.short_name === "US");
+      }
+    );
+  });
+}
+
+export async function validateUsCity(city) {
+  const cleaned = city.trim();
+  if (!cleaned) {
+    return false;
+  }
+
+  const apiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
+  if (apiKey) {
+    try {
+      await loadGoogleMapsPlaces(apiKey);
+      return geocodeUsCity(cleaned);
+    } catch {
+      return isUsCityHeuristic(cleaned);
+    }
+  }
+
+  return isUsCityHeuristic(cleaned);
+}

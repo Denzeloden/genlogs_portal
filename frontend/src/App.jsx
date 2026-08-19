@@ -37,9 +37,16 @@ export default function App() {
     setTheme((current) => (current === "dark" ? "light" : "dark"));
   }
 
+  function clearSearchResults() {
+    setCarriers([]);
+    setRoutes([]);
+    setCarrierStatus("idle");
+  }
+
   async function handleSearch() {
     setLoading(true);
     setError("");
+    clearSearchResults();
 
     try {
       const result = await searchRoutes(fromCity, toCity);
@@ -47,10 +54,8 @@ export default function App() {
       setRoutes(result.routes);
       setCarrierStatus(result.carriers.length ? "results" : "empty");
     } catch (searchError) {
-      setCarriers([]);
-      setRoutes([]);
-      setCarrierStatus("idle");
-      setError("Unable to complete the search. Check that the backend is running.");
+      clearSearchResults();
+      setError(searchError.message || "Unable to complete the search. Check that the backend is running.");
       console.error(searchError);
     } finally {
       setLoading(false);
@@ -65,12 +70,28 @@ export default function App() {
       <SearchForm
         fromCity={fromCity}
         toCity={toCity}
-        onFromChange={setFromCity}
-        onToChange={setToCity}
+        onFromChange={(value) => {
+          setFromCity(value);
+          setError("");
+        }}
+        onToChange={(value) => {
+          setToCity(value);
+          setError("");
+        }}
         onSearch={handleSearch}
+        onValidationError={(message) => {
+          setError(message);
+          if (message) {
+            clearSearchResults();
+          }
+        }}
         loading={loading}
       />
-      {error ? <p className="error-banner">{error}</p> : null}
+      {error ? (
+        <p className="error-banner" role="alert">
+          {error}
+        </p>
+      ) : null}
       <RouteMaps routes={routes} />
       <CarrierList carriers={carriers} status={carrierStatus} />
     </main>

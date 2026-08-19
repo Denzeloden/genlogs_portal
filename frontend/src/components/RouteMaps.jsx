@@ -16,6 +16,7 @@ export default function RouteMaps({ routes }) {
               </p>
             </div>
             <iframe
+              key={route.embed_url}
               title={`${route.label} route map`}
               src={route.embed_url}
               loading="lazy"

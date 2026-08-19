@@ -1,5 +1,6 @@
 import { useRef } from "react";
 import { usePlacesAutocomplete } from "../hooks/usePlacesAutocomplete";
+import { US_ONLY_ERROR_MESSAGE, validateUsCity } from "../utils/validateUsCity";
 
 const hasPlacesAutocomplete = Boolean(import.meta.env.VITE_GOOGLE_MAPS_API_KEY);
 
@@ -9,6 +10,7 @@ export default function SearchForm({
   onFromChange,
   onToChange,
   onSearch,
+  onValidationError,
   loading,
 }) {
   const fromInputRef = useRef(null);
@@ -16,6 +18,21 @@ export default function SearchForm({
 
   usePlacesAutocomplete(fromInputRef, onFromChange, hasPlacesAutocomplete);
   usePlacesAutocomplete(toInputRef, onToChange, hasPlacesAutocomplete);
+
+  async function handleSubmit() {
+    const [fromValid, toValid] = await Promise.all([
+      validateUsCity(fromCity),
+      validateUsCity(toCity),
+    ]);
+
+    if (!fromValid || !toValid) {
+      onValidationError(US_ONLY_ERROR_MESSAGE);
+      return;
+    }
+
+    onValidationError("");
+    onSearch();
+  }
 
   return (
     <section className="search-panel">
@@ -47,7 +64,7 @@ export default function SearchForm({
             onChange={(event) => onToChange(event.target.value)}
           />
         </label>
-        <button type="button" onClick={onSearch} disabled={loading}>
+        <button type="button" onClick={handleSubmit} disabled={loading}>
           {loading ? "Searching..." : "Search"}
         </button>
       </div>
