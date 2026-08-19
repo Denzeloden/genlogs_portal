@@ -16,6 +16,10 @@ class RouteOption(BaseModel):
 class SearchRequest(BaseModel):
     from_city: str = Field(..., min_length=1)
     to_city: str = Field(..., min_length=1)
+    from_lat: float | None = None
+    from_lng: float | None = None
+    to_lat: float | None = None
+    to_lng: float | None = None
 
 
 class SearchResponse(BaseModel):

@@ -21,21 +21,25 @@ export default function SearchForm({
   const toInputRef = useRef(null);
   const [fromPlaceId, setFromPlaceId] = useState(null);
   const [toPlaceId, setToPlaceId] = useState(null);
+  const [fromCoords, setFromCoords] = useState(null);
+  const [toCoords, setToCoords] = useState(null);
 
   usePlacesAutocomplete(
     fromInputRef,
-    ({ label, placeId }) => {
+    ({ label, placeId, lat, lng }) => {
       onFromChange(label);
       setFromPlaceId(placeId);
+      setFromCoords({ lat, lng });
     },
     hasPlacesAutocomplete
   );
 
   usePlacesAutocomplete(
     toInputRef,
-    ({ label, placeId }) => {
+    ({ label, placeId, lat, lng }) => {
       onToChange(label);
       setToPlaceId(placeId);
+      setToCoords({ lat, lng });
     },
     hasPlacesAutocomplete
   );
@@ -43,11 +47,13 @@ export default function SearchForm({
   function handleFromInputChange(value) {
     onFromChange(value);
     setFromPlaceId(null);
+    setFromCoords(null);
   }
 
   function handleToInputChange(value) {
     onToChange(value);
     setToPlaceId(null);
+    setToCoords(null);
   }
 
   const canSearch = hasPlacesAutocomplete
@@ -63,7 +69,14 @@ export default function SearchForm({
         }
 
         onValidationError("");
-        await onSearch({ fromCity, toCity });
+        await onSearch({
+          fromCity,
+          toCity,
+          fromLat: fromCoords.lat,
+          fromLng: fromCoords.lng,
+          toLat: toCoords.lat,
+          toLng: toCoords.lng,
+        });
         return;
       }
 

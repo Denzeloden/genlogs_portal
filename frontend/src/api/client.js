@@ -8,16 +8,34 @@ export class SearchRequestError extends Error {
   }
 }
 
-export async function searchRoutes(fromCity, toCity) {
+export async function searchRoutes({
+  fromCity,
+  toCity,
+  fromLat,
+  fromLng,
+  toLat,
+  toLng,
+}) {
+  const payload = {
+    from_city: fromCity,
+    to_city: toCity,
+  };
+
+  if (fromLat != null && fromLng != null) {
+    payload.from_lat = fromLat;
+    payload.from_lng = fromLng;
+  }
+  if (toLat != null && toLng != null) {
+    payload.to_lat = toLat;
+    payload.to_lng = toLng;
+  }
+
   const response = await fetch("/api/search", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
     },
-    body: JSON.stringify({
-      from_city: fromCity,
-      to_city: toCity,
-    }),
+    body: JSON.stringify(payload),
   });
 
   if (!response.ok) {

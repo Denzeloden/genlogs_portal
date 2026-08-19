@@ -53,7 +53,14 @@ export default function App() {
     clearSearchResults();
 
     try {
-      const result = await searchRoutes(resolvedFrom, resolvedTo);
+      const result = await searchRoutes({
+        fromCity: resolvedFrom,
+        toCity: resolvedTo,
+        fromLat: searchPayload.fromLat,
+        fromLng: searchPayload.fromLng,
+        toLat: searchPayload.toLat,
+        toLng: searchPayload.toLng,
+      });
       setCarriers(result.carriers);
       setRoutes(result.routes);
       setCarrierStatus(result.carriers.length ? "results" : "empty");

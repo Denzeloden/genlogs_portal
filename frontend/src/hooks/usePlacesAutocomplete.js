@@ -1,5 +1,5 @@
 import { useEffect, useRef } from "react";
-import { formatPlaceCity } from "../utils/validateUsCity";
+import { formatPlaceCity, getPlaceCoordinates, isMainlandUsPlace } from "../utils/validateUsCity";
 
 export const US_CITY_AUTOCOMPLETE_OPTIONS = {
   componentRestrictions: { country: "us" },
@@ -82,18 +82,21 @@ export function usePlacesAutocomplete(inputRef, onPlaceSelected, enabled = true)
 
         autocompleteRef.current.addListener("place_changed", () => {
           const place = autocompleteRef.current.getPlace();
-          if (!place?.place_id || !isUnitedStatesPlace(place)) {
+          if (!place?.place_id || !isUnitedStatesPlace(place) || !isMainlandUsPlace(place)) {
             return;
           }
 
           const label = formatPlaceCity(place);
-          if (!label) {
+          const coordinates = getPlaceCoordinates(place);
+          if (!label || !coordinates) {
             return;
           }
 
           onPlaceSelectedRef.current({
             label,
             placeId: place.place_id,
+            lat: coordinates.lat,
+            lng: coordinates.lng,
           });
         });
       })

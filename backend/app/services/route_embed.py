@@ -88,14 +88,24 @@ def _format_distance(meters: int) -> str:
     return f"{miles} mi"
 
 
-def _fetch_fastest_routes(from_city: str, to_city: str) -> list[dict]:
+def _route_point(
+    city: str,
+    lat: float | None = None,
+    lng: float | None = None,
+) -> str:
+    if lat is not None and lng is not None:
+        return f"{lat},{lng}"
+    return city
+
+
+def _fetch_fastest_routes(origin: str, destination: str) -> list[dict]:
     api_key = os.getenv("GOOGLE_MAPS_EMBED_KEY")
     if not api_key:
         return []
 
     params = {
-        "origin": from_city,
-        "destination": to_city,
+        "origin": origin,
+        "destination": destination,
         "mode": "driving",
         "alternatives": "true",
         "key": api_key,
@@ -139,13 +149,13 @@ def _waypoint_for_route(route: dict) -> str | None:
 
 
 def build_embed_url(
-    from_city: str,
-    to_city: str,
+    origin: str,
+    destination: str,
     waypoint: str | None = None,
 ) -> str:
     api_key = os.getenv("GOOGLE_MAPS_EMBED_KEY")
-    origin = quote_plus(from_city)
-    destination = quote_plus(to_city)
+    origin = quote_plus(origin)
+    destination = quote_plus(destination)
 
     if api_key:
         url = (
@@ -166,12 +176,21 @@ def build_embed_url(
     )
 
 
-def get_route_options(from_city: str, to_city: str) -> list[dict]:
+def get_route_options(
+    from_city: str,
+    to_city: str,
+    from_lat: float | None = None,
+    from_lng: float | None = None,
+    to_lat: float | None = None,
+    to_lng: float | None = None,
+) -> list[dict]:
     from_key = normalize_city_key(from_city)
     to_key = normalize_city_key(to_city)
+    origin = _route_point(from_city, from_lat, from_lng)
+    destination = _route_point(to_city, to_lat, to_lng)
     mock_metadata = ROUTE_METADATA.get((from_key, to_key), DEFAULT_ROUTE_METADATA)
     fallback_waypoints = ROUTE_WAYPOINTS.get((from_key, to_key), [None, None, None])
-    fastest_routes = _fetch_fastest_routes(from_city, to_city)
+    fastest_routes = _fetch_fastest_routes(origin, destination)
 
     routes = []
     for index in range(ROUTE_COUNT):
@@ -195,7 +214,7 @@ def get_route_options(from_city: str, to_city: str) -> list[dict]:
                 "label": ROUTE_LABELS[index],
                 "duration_text": duration_text,
                 "distance_text": distance_text,
-                "embed_url": build_embed_url(from_city, to_city, waypoint),
+                "embed_url": build_embed_url(origin, destination, waypoint),
             }
         )
 

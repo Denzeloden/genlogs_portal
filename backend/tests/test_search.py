@@ -128,6 +128,38 @@ def test_rejects_bogota_colombia(client):
     assert response.json()["detail"] == US_ONLY_ERROR_MESSAGE
 
 
+def test_rejects_non_mainland_coordinates(client):
+    response = client.post(
+        "/api/search",
+        json={
+            "from_city": "San Francisco, CA",
+            "to_city": "Guam",
+            "to_lat": 13.4443,
+            "to_lng": 144.7937,
+        },
+    )
+    assert response.status_code == 422
+    assert response.json()["detail"] == US_ONLY_ERROR_MESSAGE
+
+
+def test_accepts_mainland_guam_missouri_with_coordinates(client):
+    response = client.post(
+        "/api/search",
+        json={
+            "from_city": "San Francisco, CA",
+            "to_city": "Guam, MO",
+            "to_lat": 39.627,
+            "to_lng": -94.689,
+        },
+    )
+    assert response.status_code == 200
+    routes = response.json()["routes"]
+    assert len(routes) == 3
+    for route in routes:
+        assert "13.4443" not in route["embed_url"]
+        assert "144.7937" not in route["embed_url"]
+
+
 def test_rejects_non_us_cities(client):
     response = client.post(
         "/api/search",

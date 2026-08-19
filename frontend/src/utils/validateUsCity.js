@@ -6,6 +6,59 @@ export const US_ONLY_ERROR_MESSAGE =
 export const DROPDOWN_REQUIRED_MESSAGE =
   "Please select a location from the dropdown";
 
+export const NON_MAINLAND_STATE_CODES = new Set([
+  "AK", "HI", "GU", "PR", "VI", "AS", "MP",
+]);
+
+export const MAINLAND_US_BOUNDS = {
+  minLat: 24.0,
+  maxLat: 49.5,
+  minLng: -125.0,
+  maxLng: -66.0,
+};
+
+export function isMainlandUsCoordinates(lat, lng) {
+  return (
+    lat >= MAINLAND_US_BOUNDS.minLat &&
+    lat <= MAINLAND_US_BOUNDS.maxLat &&
+    lng >= MAINLAND_US_BOUNDS.minLng &&
+    lng <= MAINLAND_US_BOUNDS.maxLng
+  );
+}
+
+export function isMainlandUsPlace(place) {
+  const state = place?.address_components?.find((component) =>
+    component.types.includes("administrative_area_level_1")
+  );
+  if (state && NON_MAINLAND_STATE_CODES.has(state.short_name)) {
+    return false;
+  }
+
+  const location = place?.geometry?.location;
+  if (!location) {
+    return false;
+  }
+
+  const lat = typeof location.lat === "function" ? location.lat() : location.lat;
+  const lng = typeof location.lng === "function" ? location.lng() : location.lng;
+  return isMainlandUsCoordinates(lat, lng);
+}
+
+export function getPlaceCoordinates(place) {
+  const location = place?.geometry?.location;
+  if (!location) {
+    return null;
+  }
+
+  const lat = typeof location.lat === "function" ? location.lat() : location.lat;
+  const lng = typeof location.lng === "function" ? location.lng() : location.lng;
+  if (lat == null || lng == null) {
+    return null;
+  }
+
+  return { lat, lng };
+}
+
 const US_GEOCODE_OPTIONS = {
   componentRestrictions: { country: "us" },
 };
@@ -108,6 +161,16 @@ function geocodeUsCity(city) {
         );
 
         if (country?.short_name !== "US") {
+          resolve({ valid: false, normalizedCity: null });
+          return;
+        }
+
+        const location = result.geometry?.location;
+        const lat =
+          typeof location?.lat === "function" ? location.lat() : location?.lat;
+        const lng =
+          typeof location?.lng === "function" ? location.lng() : location?.lng;
+        if (lat == null || lng == null || !isMainlandUsCoordinates(lat, lng)) {
           resolve({ valid: false, normalizedCity: null });
           return;
         }
